@@ -12,6 +12,10 @@ for f in .omp-plugin/marketplace.json upstream.lock.json; do
   [ "$f" = upstream.lock.json ] && [ ! -e "$f" ] && continue
   jq empty "$f" 2>/dev/null || fail "$f invalid JSON"
 done
+if jq empty .omp-plugin/marketplace.json 2>/dev/null; then
+  jq -e '.plugins[0].version | type == "string"' .omp-plugin/marketplace.json >/dev/null 2>&1 \
+    || fail ".omp-plugin/marketplace.json missing plugins[0].version"
+fi
 
 frontmatter() { awk 'NR == 1 && $0 != "---" { exit } NR > 1 && $0 == "---" { exit } NR > 1 { print }' "$1"; }
 
@@ -23,12 +27,24 @@ for f in plugin/skills/*/SKILL.md; do
   grep -q '^name:' <<<"$fm" || fail "$f missing name"
   grep -q '^description:' <<<"$fm" || fail "$f missing description"
 done
+[ "$skills" -gt 0 ] || fail "no skills under plugin/skills"
 
 agents=()
 for f in plugin/agents/*.md; do
   [ -e "$f" ] || continue
   name=$(frontmatter "$f" | sed -n 's/^name:[[:space:]]*//p' | head -n 1)
   [ -n "$name" ] && agents+=("$name")
+  autoload=$(frontmatter "$f" | sed -n 's/^autoloadSkills:[[:space:]]*\[\(.*\)\]/\1/p' | tr ',' ' ')
+  for x in $autoload; do
+    [ -d "plugin/skills/$x" ] || fail "unknown autoload skill $x in $f"
+  done
+done
+
+for f in plugin/rules/*.md plugin/agents/*.md; do
+  [ -e "$f" ] || continue
+  for x in $(grep -oE 'skill://[a-z0-9-]+<?' "$f" | grep -v '<$' | sed 's#^skill://##' | sort -u); do
+    [ -d "plugin/skills/$x" ] || fail "unknown skill skill://$x in $f"
+  done
 done
 
 is_agent_form() { # pstack:<x> resolves to a shipped agent or a mapped effort variant

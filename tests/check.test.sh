@@ -53,6 +53,24 @@ valid_root "$tmp/bad-json"
 printf '{' > "$tmp/bad-json/.omp-plugin/marketplace.json"
 expect bad-json 1 'FAIL: .omp-plugin/marketplace.json invalid JSON'
 
+valid_root "$tmp/no-version"
+printf '{"name":"pstack-omp","plugins":[{"name":"pstack"}]}\n' > "$tmp/no-version/.omp-plugin/marketplace.json"
+expect no-version 1 'FAIL: .omp-plugin/marketplace.json missing plugins[0].version'
+
+valid_root "$tmp/empty-skills"
+rm -rf "$tmp/empty-skills/plugin/skills/a"
+expect empty-skills 1 'FAIL: no skills under plugin/skills'
+
+valid_root "$tmp/rule-dangling"
+mkdir -p "$tmp/rule-dangling/plugin/rules"
+printf -- '---\nalwaysApply: true\n---\nRead `skill://a`, `skill://a/references/x.md`, `skill://principle-<name>`, then `skill://gone`.\n' \
+  > "$tmp/rule-dangling/plugin/rules/r.md"
+expect rule-dangling 1 'FAIL: unknown skill skill://gone in plugin/rules/r.md'
+
+valid_root "$tmp/autoload-dangling"
+printf -- '---\nname: poteto-agent\ndescription: d\nautoloadSkills: [a, gone]\n---\nbody\n' > "$tmp/autoload-dangling/plugin/agents/poteto-agent.md"
+expect autoload-dangling 1 'FAIL: unknown autoload skill gone in plugin/agents/poteto-agent.md'
+
 if [ "$failures" -ne 0 ]; then
   echo "$failures of $cases cases failed"
   exit 1
