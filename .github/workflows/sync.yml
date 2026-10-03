@@ -1,0 +1,62 @@
+name: sync
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sync latest pstack-claude tag
+        run: bash scripts/sync.sh | tee sync.log
+
+      - name: Gate
+        id: gate
+        continue-on-error: true
+        run: bash scripts/check.sh | tee check.log
+
+      - name: PR body
+        id: meta
+        run: |
+          tag=$(jq -r .tag upstream.lock.json)
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          {
+            echo "Upstream: https://github.com/michael-denyer/pstack-claude/releases/tag/$tag"
+            echo
+            echo "Gate: ${{ steps.gate.outcome }}"
+            echo
+            echo '```'
+            cat check.log
+            echo '```'
+            echo
+            echo '```'
+            cat sync.log
+            echo '```'
+          } > pr-body.md
+          rm sync.log check.log
+
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          branch: sync/pstack-claude
+          delete-branch: true
+          title: "chore(sync): pstack-claude ${{ steps.meta.outputs.tag }}"
+          commit-message: "chore(sync): pstack-claude ${{ steps.meta.outputs.tag }}"
+          body-path: pr-body.md
+          add-paths: |
+            plugin/skills
+            upstream-licenses
+            upstream.lock.json
+            .omp-plugin/marketplace.json
+          draft: ${{ steps.gate.outcome == 'failure' }}
