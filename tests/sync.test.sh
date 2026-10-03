@@ -73,6 +73,32 @@ mv "$tmp/cat.json" "$work/.omp-plugin/marketplace.json"
 (cd "$work" && bash scripts/sync.sh v0.0.2 >/dev/null)
 assert "local version kept on same upstream version" test "$(version)" = 0.0.2-omp.3
 
+git_q -C "$work" add -A
+git_q -C "$work" commit -m local-bump
+rm "$work/upstream.lock.json"
+(cd "$work" && bash scripts/sync.sh v0.0.2 >/dev/null)
+assert "missing lock does not reset the local suffix" test "$(version)" = 0.0.2-omp.3
+
+printf 'changed\n' >> "$up/plugins/pstack/skills/c/SKILL.md"
+git_q -C "$up" commit -am retag
+git_q -C "$up" tag v0.0.2.1
+(cd "$work" && bash scripts/sync.sh v0.0.2.1 >/dev/null)
+assert "same upstream VERSION, new commit bumps the suffix" test "$(version)" = 0.0.2-omp.4
+
+printf '0.0.3\n' > "$up/VERSION"
+git_q -C "$up" commit -am three
+git_q -C "$up" tag v0.0.3
+printf '{' > "$work/.omp-plugin/marketplace.json"
+rc=0
+(cd "$work" && bash scripts/sync.sh v0.0.3 >/dev/null 2>&1) || rc=$?
+assert "invalid catalog fails the sync" test "$rc" -ne 0
+assert "invalid catalog leaves the lock untouched" test "$(jq -r .tag "$work/upstream.lock.json")" = v0.0.2.1
+
+rc=0
+out=$(cd "$work" && bash scripts/sync.sh v9.9.9 2>&1) || rc=$?
+assert "unknown tag fails" test "$rc" -ne 0
+assert "unknown tag is named in the error" grep -q 'v9.9.9' <<<"$out"
+
 if [ "$failures" -ne 0 ]; then
   echo "$failures assertion(s) failed"
   exit 1
