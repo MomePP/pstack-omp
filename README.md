@@ -60,9 +60,11 @@ Your own instructions (`~/.omp/agent/AGENTS.md`) win over pstack. I use that to 
 
 `.github/workflows/sync.yml` runs daily. When pstack-claude has a newer `v*` tag, it runs `scripts/sync.sh` and `scripts/check.sh`, then opens one PR on `sync/pstack-claude` with the gate result and the added and removed skills. The PR is a draft when the gate fails. I merge by hand.
 
-`scripts/check.sh` fails when a skill lacks `name` or `description`, when a skill spawns a `pstack:` agent this plugin does not ship or map, when a `pstack:<skill>` reference has no skill, or when the catalog or lock is invalid JSON.
+Every run rebuilds `sync/pstack-claude` from `main`, so a commit pushed to that branch is lost on the next run. When the gate fails, put the fix (a new agent, a mapping row) on `main`, then rerun the workflow (`gh workflow run sync.yml`); the PR updates and turns green.
 
-Versions read `<pstack-claude version>-omp.<n>`. A sync to a new upstream version resets `<n>` to 1; bump `<n>` in `.omp-plugin/marketplace.json` by hand for local changes. `omp plugin upgrade` only notices a changed catalog version:
+`scripts/check.sh` fails when there are no skills, a skill lacks `name` or `description`, a skill spawns a `pstack:` agent this plugin does not ship or map, a `pstack:<skill>` reference has no skill, a rule or agent points at a missing `skill://<name>` or `autoloadSkills` entry, or the catalog or lock is invalid JSON or the catalog has no version.
+
+Versions read `<pstack-claude version>-omp.<n>`. A sync to a new upstream version resets `<n>` to 1; a new upstream commit under the same version increments it. Bump `<n>` in `.omp-plugin/marketplace.json` by hand for local changes. `omp plugin upgrade` only notices a changed catalog version:
 
 ```sh
 omp plugin marketplace update pstack-omp
