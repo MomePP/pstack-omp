@@ -1,0 +1,19 @@
+{
+  "name": "pstack-omp",
+  "owner": {
+    "name": "MomePP"
+  },
+  "metadata": {
+    "description": "Personal OMP port of pstack (poteto-mode), built on pstack-claude."
+  },
+  "plugins": [
+    {
+      "name": "pstack",
+      "source": "./plugin",
+      "version": "0.0.0-omp.0",
+      "description": "pstack skills for OMP: poteto-mode, principles, review panels, unslop. Skills synced verbatim from pstack-claude; OMP routing and tool mapping ship as rules.",
+      "license": "MIT",
+      "homepage": "https://github.com/MomePP/pstack-omp"
+    }
+  ]
+}
