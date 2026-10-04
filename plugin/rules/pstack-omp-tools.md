@@ -18,7 +18,7 @@ pstack skills name Claude Code tools, agents, models, and paths. On OMP use thes
 | `SendMessage` to a running agent | `write agent://<id>` |
 | `isolation: "worktree"` | the `task` tool's isolation option when it offers one; otherwise give each writing worker its own output directory |
 | `AskUserQuestion` | `ask` |
-| `TaskCreate` / `TaskUpdate` / `TodoWrite` | `todo` |
+| `TaskCreate` / `TaskUpdate` / `TodoWrite`, the `todo.md` fallback | `todo` (always available on OMP; never write `todo.md`). A playbook step's `skip: <reason>` = `drop` the step and state the reason in the same turn |
 | `ScheduleWakeup`, `/loop` | a heartbeat (`create_heartbeat`) or a background job whose completion wakes you; never sleep-poll |
 | `~/.claude/projects/<encoded-cwd>/` transcripts | `~/.omp/agent/sessions/<encoded-cwd>/` session files; `history://<id>` for registered agents |
 | `run`, the project `verify` skill | run the program directly and observe its output; a project verify skill lives at `.omp/skills/verify/` |

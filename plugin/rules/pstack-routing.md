@@ -6,6 +6,7 @@ alwaysApply: true
 You have pstack.
 
 - Read `skill://poteto-mode` and follow it when a task touches more than one file or changes a signature other files call, involves a design or architecture choice, or is a bug whose cause is not yet known or a performance issue. It routes to the right pstack skill from there. For smaller tasks (a contained change to one file with an obvious test, a question, a one-line edit), work directly and verify on the real artifact.
+- When a poteto-mode playbook matches, your first tool call after reading the playbook is `todo` (`op: "init"`) whose first items are that playbook's steps copied verbatim, before any task-specific items. To skip a step, `drop` it and state `skip: <reason>` in one line in the same turn; list every skipped step with its reason in your final reply. Skipping a step is allowed; skipping it silently is not.
 - When the intent is already specific, enter that skill directly: `skill://tdd`, `skill://architect`, `skill://how`, `skill://why`, `skill://arena`, `skill://interrogate`.
 - pstack skills are written in Claude Code terms. These translations always apply:
   - `Agent` tool → `task`; N parallel agents = one `task` call with N `tasks[]` items. `subagent_type: "pstack:poteto-agent"` → `agent: "poteto-agent"`; `"pstack:comment-sicko"` → `agent: "comment-sicko"`; `general-purpose` → the default `task` agent.
