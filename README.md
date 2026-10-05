@@ -62,6 +62,8 @@ Your own instructions (`~/.omp/agent/AGENTS.md`) win over pstack. I use that to 
 
 This relies on two repository settings: **Allow auto-merge** and **Automatically delete head branches** (Settings → General), and a `main` branch ruleset that requires the `check` status from GitHub Actions, with Repository admin in its bypass list.
 
+The PR is opened with the `SYNC_TOKEN` secret: a fine-grained personal access token for this repository only, with **Contents** and **Pull requests** set to read and write. A PR opened with the workflow's own `GITHUB_TOKEN` does not start `check` until a maintainer approves the run, so it would never merge on its own. Without the secret, the workflow falls back to `GITHUB_TOKEN` and each sync PR waits for that approval. When the token expires, the PR step fails and the run goes red; renew the token and update the secret.
+
 Every run rebuilds `sync/pstack-claude` from `main`, so a commit pushed to that branch is lost on the next run. When the gate fails, put the fix (a new agent, a mapping row) on `main`, then rerun the workflow (`gh workflow run sync.yml`); the PR updates, turns green, and merges.
 
 `scripts/check.sh` fails when there are no skills, a skill lacks `name` or `description`, a skill spawns a `pstack:` agent this plugin does not ship or map, a `pstack:<skill>` reference has no skill, a rule or agent points at a missing `skill://<name>` or `autoloadSkills` entry, or the catalog or lock is invalid JSON or the catalog has no version.

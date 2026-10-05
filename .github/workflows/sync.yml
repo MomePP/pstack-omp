@@ -55,6 +55,7 @@ jobs:
       - uses: peter-evans/create-pull-request@v8
         id: pr
         with:
+          token: ${{ secrets.SYNC_TOKEN || github.token }}
           branch: sync/pstack-claude
           delete-branch: true
           title: "chore(sync): pstack-claude ${{ steps.meta.outputs.tag }}"
