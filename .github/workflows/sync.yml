@@ -17,7 +17,7 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Sync latest pstack-claude tag
         run: bash scripts/sync.sh | tee sync.log
@@ -47,7 +47,7 @@ jobs:
           } > pr-body.md
           rm sync.log check.log
 
-      - uses: peter-evans/create-pull-request@v7
+      - uses: peter-evans/create-pull-request@v8
         with:
           branch: sync/pstack-claude
           delete-branch: true
