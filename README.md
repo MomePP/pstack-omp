@@ -58,7 +58,9 @@ Your own instructions (`~/.omp/agent/AGENTS.md`) win over pstack. I use that to 
 
 ## Sync
 
-`.github/workflows/sync.yml` runs daily. When pstack-claude has a newer `v*` tag, it runs `scripts/sync.sh` and `scripts/check.sh`, then opens one PR on `sync/pstack-claude` with the gate result and the added and removed skills. When the gate passes, the workflow squash-merges that PR itself. When the gate fails, the PR stays open as a draft for review. If a merge is refused (for example a conflict), the PR also stays open and the run logs a warning.
+`.github/workflows/sync.yml` runs daily. When pstack-claude has a newer `v*` tag, it runs `scripts/sync.sh` and `scripts/check.sh`, then opens one PR on `sync/pstack-claude` with the gate result and the added and removed skills. When the gate passes, the workflow enables GitHub auto-merge (squash) on that PR, and GitHub merges it once the required `check` status passes. When the gate fails, the PR stays open as a draft for review. A failing `check`, a conflict, or a refused auto-merge also leaves the PR open.
+
+This relies on two repository settings: **Allow auto-merge** and **Automatically delete head branches** (Settings → General), and a `main` branch ruleset that requires the `check` status from GitHub Actions, with Repository admin in its bypass list.
 
 Every run rebuilds `sync/pstack-claude` from `main`, so a commit pushed to that branch is lost on the next run. When the gate fails, put the fix (a new agent, a mapping row) on `main`, then rerun the workflow (`gh workflow run sync.yml`); the PR updates, turns green, and merges.
 

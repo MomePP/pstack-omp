@@ -37,7 +37,7 @@ jobs:
             echo
             echo "Gate: ${{ steps.gate.outcome }}"
             if [ "${{ steps.gate.outcome }}" = success ]; then
-              echo "Auto-merge: this PR merges itself when the gate passes."
+              echo "Auto-merge: on. GitHub merges this PR once the required \`check\` passes."
             else
               echo "Auto-merge: off. The gate failed; fix it on main and rerun the sync."
             fi
@@ -67,14 +67,9 @@ jobs:
             .omp-plugin/marketplace.json
           draft: ${{ steps.gate.outcome == 'failure' }}
 
-      - name: Auto-merge
+      - name: Enable auto-merge
         if: steps.gate.outcome == 'success' && (steps.pr.outputs.pull-request-operation == 'created' || steps.pr.outputs.pull-request-operation == 'updated')
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ steps.pr.outputs.pull-request-number }}
-        run: |
-          for attempt in 1 2 3; do
-            gh pr merge "$PR" --squash --delete-branch && exit 0
-            sleep 10
-          done
-          echo "::warning::PR #$PR could not be merged; left open for review"
+        run: gh pr merge "$PR" --auto --squash || echo "::warning::could not enable auto-merge on PR #$PR; left open for review"
