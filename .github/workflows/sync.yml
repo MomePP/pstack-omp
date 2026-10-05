@@ -36,6 +36,11 @@ jobs:
             echo "Upstream: https://github.com/michael-denyer/pstack-claude/releases/tag/$tag"
             echo
             echo "Gate: ${{ steps.gate.outcome }}"
+            if [ "${{ steps.gate.outcome }}" = success ]; then
+              echo "Auto-merge: this PR merges itself when the gate passes."
+            else
+              echo "Auto-merge: off. The gate failed; fix it on main and rerun the sync."
+            fi
             echo
             echo '```'
             cat check.log
@@ -48,6 +53,7 @@ jobs:
           rm sync.log check.log
 
       - uses: peter-evans/create-pull-request@v8
+        id: pr
         with:
           branch: sync/pstack-claude
           delete-branch: true
@@ -60,3 +66,15 @@ jobs:
             upstream.lock.json
             .omp-plugin/marketplace.json
           draft: ${{ steps.gate.outcome == 'failure' }}
+
+      - name: Auto-merge
+        if: steps.gate.outcome == 'success' && (steps.pr.outputs.pull-request-operation == 'created' || steps.pr.outputs.pull-request-operation == 'updated')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ steps.pr.outputs.pull-request-number }}
+        run: |
+          for attempt in 1 2 3; do
+            gh pr merge "$PR" --squash --delete-branch && exit 0
+            sleep 10
+          done
+          echo "::warning::PR #$PR could not be merged; left open for review"

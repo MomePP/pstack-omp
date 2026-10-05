@@ -58,9 +58,9 @@ Your own instructions (`~/.omp/agent/AGENTS.md`) win over pstack. I use that to 
 
 ## Sync
 
-`.github/workflows/sync.yml` runs daily. When pstack-claude has a newer `v*` tag, it runs `scripts/sync.sh` and `scripts/check.sh`, then opens one PR on `sync/pstack-claude` with the gate result and the added and removed skills. The PR is a draft when the gate fails. I merge by hand.
+`.github/workflows/sync.yml` runs daily. When pstack-claude has a newer `v*` tag, it runs `scripts/sync.sh` and `scripts/check.sh`, then opens one PR on `sync/pstack-claude` with the gate result and the added and removed skills. When the gate passes, the workflow squash-merges that PR itself. When the gate fails, the PR stays open as a draft for review. If a merge is refused (for example a conflict), the PR also stays open and the run logs a warning.
 
-Every run rebuilds `sync/pstack-claude` from `main`, so a commit pushed to that branch is lost on the next run. When the gate fails, put the fix (a new agent, a mapping row) on `main`, then rerun the workflow (`gh workflow run sync.yml`); the PR updates and turns green.
+Every run rebuilds `sync/pstack-claude` from `main`, so a commit pushed to that branch is lost on the next run. When the gate fails, put the fix (a new agent, a mapping row) on `main`, then rerun the workflow (`gh workflow run sync.yml`); the PR updates, turns green, and merges.
 
 `scripts/check.sh` fails when there are no skills, a skill lacks `name` or `description`, a skill spawns a `pstack:` agent this plugin does not ship or map, a `pstack:<skill>` reference has no skill, a rule or agent points at a missing `skill://<name>` or `autoloadSkills` entry, or the catalog or lock is invalid JSON or the catalog has no version.
 
