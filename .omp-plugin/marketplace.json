@@ -10,7 +10,7 @@
     {
       "name": "pstack",
       "source": "./plugin",
-      "version": "0.9.64-omp.3",
+      "version": "0.9.67-omp.1",
       "description": "pstack skills for OMP: poteto-mode, principles, review panels, unslop. Skills synced verbatim from pstack-claude; OMP routing and tool mapping ship as rules.",
       "license": "MIT",
       "homepage": "https://github.com/MomePP/pstack-omp"
