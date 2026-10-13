@@ -41,7 +41,7 @@ modelRoles:
   opus: anthropic/claude-opus-5-5:high
   fable: anthropic/claude-fable-5-1:high
   sonnet: anthropic/claude-sonnet-5-5:medium
-  haiku: anthropic/claude-haiku-4-5:low
+  haiku: anthropic/claude-haiku-5-5:low
 ```
 
 Point them at whatever you have. The panel skills (`arena`, `architect`, `interrogate`) run three models per call. They cost about three times a single-model review, and they stay diverse only while the aliases resolve to different models.
@@ -58,13 +58,13 @@ Your own instructions (`~/.omp/agent/AGENTS.md`) win over pstack. I use that to 
 
 ## Sync
 
-`.github/workflows/sync.yml` runs daily. When pstack-claude has a newer `v*` tag, it runs `scripts/sync.sh` and `scripts/check.sh`, then opens one PR on `sync/pstack-claude` with the gate result and the added and removed skills. When the gate passes, the workflow enables GitHub auto-merge (squash) on that PR, and GitHub merges it once the required `check` status passes. When the gate fails, the PR stays open as a draft for review. A failing `check`, a conflict, or a refused auto-merge also leaves the PR open.
+`.github/workflows/sync.yml` runs daily at 19:00 UTC; GitHub often starts scheduled runs hours late. When pstack-claude has a newer `v*` tag, it runs `scripts/sync.sh` and `scripts/check.sh`, then opens one PR on `sync/pstack-claude` with the gate result and the added and removed skills. When the gate passes, the workflow marks the PR ready if an earlier run left it as a draft, enables GitHub auto-merge (squash), and GitHub merges it once the required `check` status passes. When the gate fails, the PR stays open as a draft for review. A failing `check`, a conflict, or a refused auto-merge also leaves the PR open.
 
 This relies on two repository settings: **Allow auto-merge** and **Automatically delete head branches** (Settings → General), and a `main` branch ruleset that requires the `check` status from GitHub Actions, with Repository admin in its bypass list.
 
 The PR is opened with the `SYNC_TOKEN` secret: a fine-grained personal access token for this repository only, with **Contents** and **Pull requests** set to read and write. A PR opened with the workflow's own `GITHUB_TOKEN` does not start `check` until a maintainer approves the run, so it would never merge on its own. Without the secret, the workflow falls back to `GITHUB_TOKEN` and each sync PR waits for that approval. When the token expires, the PR step fails and the run goes red; renew the token and update the secret.
 
-Every run rebuilds `sync/pstack-claude` from `main`, so a commit pushed to that branch is lost on the next run. When the gate fails, put the fix (a new agent, a mapping row) on `main`, then rerun the workflow (`gh workflow run sync.yml`); the PR updates, turns green, and merges.
+Every run rebuilds `sync/pstack-claude` from `main`, so a commit pushed to that branch is lost on the next run. When the gate fails, put the fix (a new agent, a mapping row) on `main`, then rerun the workflow (`gh workflow run sync.yml`); the PR updates, turns green, and merges. A fix that needs the new skills (an agent whose `autoloadSkills` names a skill only the sync adds) fails the gate on `main`; push it to `sync/pstack-claude` instead, mark the PR ready, and merge it before the next run.
 
 `scripts/check.sh` fails when there are no skills, a skill lacks `name` or `description`, a skill spawns a `pstack:` agent this plugin does not ship or map, a `pstack:<skill>` reference has no skill, a rule or agent points at a missing `skill://<name>` or `autoloadSkills` entry, or the catalog or lock is invalid JSON or the catalog has no version.
 

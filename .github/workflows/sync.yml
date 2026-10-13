@@ -74,5 +74,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ steps.pr.outputs.pull-request-number }}
         run: |
+          # create-pull-request sets draft only on create; a PR drafted by an earlier failed gate stays draft.
+          if [ "$(gh pr view "$PR" --json isDraft -q .isDraft)" = true ]; then
+            gh pr ready "$PR"
+          fi
           gh pr merge "$PR" --auto --squash \
             || echo "::warning::could not enable auto-merge on PR #$PR; left open for review"
