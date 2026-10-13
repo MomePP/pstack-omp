@@ -11,6 +11,7 @@ pstack skills name Claude Code tools, agents, models, and paths. On OMP use thes
 | `Skill` tool, `pstack:<skill>`, `/<skill>` | `read skill://<skill>`; the user types `/skill:<skill>` |
 | `Agent` / `Task` tool with `subagent_type: "pstack:poteto-agent"` | `task` with `agent: "poteto-agent"`. N parallel agents = one `task` call with N `tasks[]` items |
 | `subagent_type: "pstack:comment-sicko"` | `task` with `agent: "comment-sicko"`; pass the scope; no isolation, because it needs the uncommitted changes |
+| `subagent_type: "pstack:thermo-nuclear-review-subagent"`, `"pstack:thermo-nuclear-code-quality-review-subagent"` | `task` with `agent: "thermo-nuclear-review-subagent"` or `agent: "thermo-nuclear-code-quality-review-subagent"`; `thermos` runs both in one `tasks[]` batch |
 | `pstack:poteto-agent-<level>`, `pstack:effort-<level>` | `agent: "poteto-agent"` or the default `task` agent, with `model: "@<alias>:<level>"` |
 | `general-purpose`, `Explore`, `Plan` | the default `task` agent; `scout` for read-only exploration |
 | `readonly: true` | say "do not edit files" in the task; prefer a read-only agent (`scout`, `reviewer`) where it fits |

@@ -11,7 +11,7 @@
 | `plugin/skills/` | the pstack skills | `scripts/sync.sh` only, copied verbatim from a pstack-claude release tag |
 | `plugin/rules/pstack-routing.md` | always-apply rule: route multi-file, design, and unknown-cause bug work through `poteto-mode` | hand-written |
 | `plugin/rules/pstack-omp-tools.md` | `rule://pstack-omp-tools`: Claude Code → OMP mapping (`Agent` → `task`, `AskUserQuestion` → `ask`, model aliases, paths) | hand-written |
-| `plugin/agents/` | `poteto-agent` (preloads `poteto-mode`) and `comment-sicko` | hand-written / upstream body |
+| `plugin/agents/` | `poteto-agent` (preloads `poteto-mode`), `comment-sicko`, and the two thermo-nuclear review subagents (preload their rubric skills) | hand-written / upstream body |
 | `upstream.lock.json` | the pstack-claude tag and commit the skills came from | `scripts/sync.sh` |
 | `upstream-licenses/` | upstream license and notice files | `scripts/sync.sh` |
 
@@ -30,7 +30,7 @@ Start a new session afterwards. Check with:
 omp -p --no-session "Do not call tools. List the agents in the task tool's Available Agents."
 ```
 
-`poteto-agent` and `comment-sicko` should be listed.
+`poteto-agent`, `comment-sicko`, `thermo-nuclear-review-subagent`, and `thermo-nuclear-code-quality-review-subagent` should be listed.
 
 ### Model roles
 
