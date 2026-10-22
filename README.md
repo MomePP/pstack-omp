@@ -30,11 +30,11 @@ Start a new session afterwards. Check with:
 omp -p --no-session "Do not call tools. List the agents in the task tool's Available Agents."
 ```
 
-`poteto-agent`, `comment-sicko`, `thermo-nuclear-review-subagent`, and `thermo-nuclear-code-quality-review-subagent` should be listed.
+`poteto-agent`, `comment-sicko`, `thermo-nuclear-review-subagent`, `thermo-nuclear-code-quality-review-subagent`, and the model-pinned `task-{opus,fable,sonnet,haiku}` and `poteto-{opus,fable,sonnet,haiku}` should be listed.
 
 ### Model roles
 
-The skills name models by alias (`opus`, `fable`, `sonnet`, `haiku`). Bind roles with those exact names in `~/.omp/agent/config.yml` so `model: "@fable"` resolves:
+The skills name models by alias (`opus`, `fable`, `sonnet`, `haiku`). OMP's `task` tool has no per-item `model` field since 18.8.2, so the plugin ships one agent per alias (`task-<alias>`, `poteto-<alias>`, each with `model: "@<alias>"`) and the rules route a named model to it. Bind roles with those exact names in `~/.omp/agent/config.yml`:
 
 ```yaml
 modelRoles:

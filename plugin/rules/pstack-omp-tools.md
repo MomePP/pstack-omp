@@ -12,8 +12,8 @@ pstack skills name Claude Code tools, agents, models, and paths. On OMP use thes
 | `Agent` / `Task` tool with `subagent_type: "pstack:poteto-agent"` | `task` with `agent: "poteto-agent"`. N parallel agents = one `task` call with N `tasks[]` items |
 | `subagent_type: "pstack:comment-sicko"` | `task` with `agent: "comment-sicko"`; pass the scope; no isolation, because it needs the uncommitted changes |
 | `subagent_type: "pstack:thermo-nuclear-review-subagent"`, `"pstack:thermo-nuclear-code-quality-review-subagent"` | `task` with `agent: "thermo-nuclear-review-subagent"` or `agent: "thermo-nuclear-code-quality-review-subagent"`; `thermos` runs both in one `tasks[]` batch |
-| `pstack:poteto-agent-<level>`, `pstack:effort-<level>` | `agent: "poteto-agent"` or the default `task` agent, with `model: "@<alias>:<level>"` |
-| `general-purpose`, `Explore`, `Plan` | the default `task` agent; `scout` for read-only exploration |
+| `pstack:poteto-agent-<level>`, `pstack:effort-<level>` | `agent: "poteto-agent"` or the default `task` agent, with the item's `effort` set from `<level>` (`low` → `"lo"`, `medium` → `"med"`, `high`/`xhigh`/`max` → `"hi"`) when the `task` tool offers it |
+| `general-purpose`, `Explore`, `Plan` | the default `task` agent; `scout` for read-only exploration; `task-<alias>` when the skill names a model |
 | `readonly: true` | say "do not edit files" in the task; prefer a read-only agent (`scout`, `reviewer`) where it fits |
 | `run_in_background: true` | OMP tasks run asynchronously and their results arrive on their own; never poll |
 | `SendMessage` to a running agent | `write agent://<id>` |
@@ -25,7 +25,7 @@ pstack skills name Claude Code tools, agents, models, and paths. On OMP use thes
 | `run`, the project `verify` skill | run the program directly and observe its output; a project verify skill lives at `.omp/skills/verify/` |
 | `plugin-dev:skill-development` | OMP skill conventions: `skills/<name>/SKILL.md` with `name` and `description` frontmatter |
 | `CLAUDE.md`, "your instructions file" | `~/.omp/agent/AGENTS.md` (user), `.omp/AGENTS.md` or `AGENTS.md` (project) |
-| model aliases `opus`, `fable`, `sonnet`, `haiku` | `model: "@opus"`, `"@fable"`, `"@sonnet"`, `"@haiku"`, resolved by same-named `modelRoles` |
+| model aliases `opus`, `fable`, `sonnet`, `haiku` on a subagent | the agent pinned to that alias: `task-<alias>` for `general-purpose`, `poteto-<alias>` for `pstack:poteto-agent`. `task` has no per-item `model` field (removed in OMP 18.8.2). Each pinned agent runs on the same-named `modelRoles` entry |
 
 - The `recall` and `reflect` skills are pstack workflows, not OMP's memory tools of the same names.
 - Read `skill://typescript-best-practices` before editing `*.ts` or `*.tsx` files. Upstream loads it through `paths:` frontmatter, which OMP does not honor.
