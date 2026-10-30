@@ -88,11 +88,20 @@ assert "same upstream VERSION, new commit bumps the suffix" test "$(version)" = 
 printf '0.0.3\n' > "$up/VERSION"
 git_q -C "$up" commit -am three
 git_q -C "$up" tag v0.0.3
+
+for i in $(seq 4 80); do
+  git_q -C "$up" tag "v0.0.$i"
+done
+rc=0
+(cd "$work" && bash scripts/sync.sh >/dev/null 2>&1) || rc=$?
+assert "auto tag selection does not fail when many tags exist" test "$rc" -eq 0
+assert "auto tag selection picks the highest tag" test "$(jq -r .tag "$work/upstream.lock.json")" = v0.0.80
+
 printf '{' > "$work/.omp-plugin/marketplace.json"
 rc=0
 (cd "$work" && bash scripts/sync.sh v0.0.3 >/dev/null 2>&1) || rc=$?
 assert "invalid catalog fails the sync" test "$rc" -ne 0
-assert "invalid catalog leaves the lock untouched" test "$(jq -r .tag "$work/upstream.lock.json")" = v0.0.2.1
+assert "invalid catalog leaves the lock untouched" test "$(jq -r .tag "$work/upstream.lock.json")" = v0.0.80
 
 rc=0
 out=$(cd "$work" && bash scripts/sync.sh v9.9.9 2>&1) || rc=$?

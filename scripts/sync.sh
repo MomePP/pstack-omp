@@ -10,7 +10,7 @@ cd "$root"
 src=$repo
 [ -d "$repo" ] && src="file://$repo"
 
-tag=${1:-$(git ls-remote --tags --refs --sort=-v:refname "$src" 'v*' | head -n 1 | sed 's#.*refs/tags/##')}
+tag=${1:-$(git ls-remote --tags --refs --sort=-v:refname "$src" 'v*' | sed -n '1s#.*refs/tags/##p')}
 [ -n "$tag" ] || { echo "sync: no v* tag found in $repo" >&2; exit 1; }
 
 tmp=$(mktemp -d)
