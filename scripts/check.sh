@@ -47,10 +47,11 @@ for f in plugin/rules/*.md plugin/agents/*.md; do
   done
 done
 
-for x in $(grep -rhoE 'On OMP[^(]*\([^)#]+' plugin/skills 2>/dev/null | sed 's#.*/##' | sort -u || true); do
-  grep -qF "$x" plugin/rules/pstack-routing.md 2>/dev/null \
+while IFS= read -r x; do
+  [ -n "$x" ] || continue
+  grep -qF "\`$x\`" plugin/rules/pstack-routing.md 2>/dev/null \
     || fail "skills point OMP at $x; plugin/rules/pstack-routing.md does not override it"
-done
+done < <(grep -rhoE 'On OMP[^(]*\]\([^)#]+' plugin/skills 2>/dev/null | sed 's#.*/##' | sort -u || true)
 
 is_agent_form() { # pstack:<x> resolves to a shipped agent or a mapped effort variant
   local x=$1 a

@@ -20,7 +20,7 @@ pstack skills name Claude Code tools, agents, models, and paths. On OMP use thes
 | `isolation: "worktree"` | the `task` tool's isolation option when it offers one; otherwise give each writing worker its own output directory |
 | `AskUserQuestion` | `ask` |
 | `TaskCreate` / `TaskUpdate` / `TodoWrite`, the `todo.md` fallback | `todo` (always available on OMP; never write `todo.md`). A playbook step's `skip: <reason>` = `drop` the step and state the reason in the same turn |
-| `ScheduleWakeup` | an `async` `bash` job (`sleep <seconds>`) whose completion wakes you; never sleep-poll |
+| `ScheduleWakeup` | an `async` `bash` job `sleep <seconds>` with `timeout` set above `<seconds>` (OMP caps it at 3600), whose completion wakes you; never sleep-poll |
 | `/loop`, the `loop` skill | to pace your own re-checks, the `ScheduleWakeup` row; for a prompt the user wants repeated, give them OMP's interactive `/loop [count\|duration] [--while\|--until '<command>'] [prompt]` line to type |
 | `WebSearch`, `WebFetch` | `web_search`; `read <url>` for a known page |
 | `~/.claude/projects/<encoded-cwd>/` transcripts | `~/.omp/agent/sessions/<encoded-cwd>/` session files; `history://<id>` for registered agents |
@@ -28,7 +28,7 @@ pstack skills name Claude Code tools, agents, models, and paths. On OMP use thes
 | `plugin-dev:skill-development` | OMP skill conventions: `skills/<name>/SKILL.md` with `name` and `description` frontmatter |
 | `CLAUDE.md`, "your instructions file" | `~/.omp/agent/AGENTS.md` (user), `.omp/AGENTS.md` or `AGENTS.md` (project) |
 | model aliases `opus`, `fable`, `sonnet`, `haiku` on a subagent | the agent pinned to that alias: `task-<alias>` for `general-purpose`, `poteto-<alias>` for `pstack:poteto-agent`. `task` has no per-item `model` field (removed in OMP 18.8.2). Each pinned agent runs on the same-named `modelRoles` entry |
-| `setup-pstack`, the `pstack-models.md` sheet | bind the `opus`, `fable`, `sonnet`, `haiku` roles under `modelRoles` in `~/.omp/agent/config.yml`, using only models `omp models` lists and keeping every other key. Routing on or off is `omp plugin disable pstack@pstack-omp`, or the routing rule's id in `disabledExtensions` |
+| `setup-pstack`, the `pstack-models.md` sheet | bind the `opus`, `fable`, `sonnet`, `haiku` roles under `modelRoles` in `~/.omp/agent/config.yml`, using only models `omp models` lists and keeping every other key. Never write `~/.omp/pstack-models.md`; nothing reads it. To turn routing off, add `rule:pstack-routing` to `disabledExtensions`; `omp plugin disable pstack@pstack-omp` turns off all of pstack |
 
 - The `recall` and `reflect` skills are pstack workflows, not OMP's memory tools of the same names.
 - Read `skill://typescript-best-practices` before editing `*.ts` or `*.tsx` files. Upstream loads it through `paths:` frontmatter, which OMP does not honor.

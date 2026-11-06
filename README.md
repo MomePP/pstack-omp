@@ -54,7 +54,7 @@ Your own instructions (`~/.omp/agent/AGENTS.md`) win over pstack. I use that to 
 
 ### Turning it off
 
-`omp plugin disable pstack@pstack-omp`, or keep the skills and drop only the routing by listing the rule in `disabledExtensions` (find its id with `/extensions`).
+`omp plugin disable pstack@pstack-omp`, or keep the skills and drop only the routing by adding `rule:pstack-routing` to `disabledExtensions`.
 
 ## Sync
 

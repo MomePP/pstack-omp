@@ -83,6 +83,17 @@ mkdir -p "$tmp/omp-pointer-overridden/plugin/rules"
 printf -- '---\nalwaysApply: true\n---\nIgnore `omp-tools.md`.\n' > "$tmp/omp-pointer-overridden/plugin/rules/pstack-routing.md"
 expect omp-pointer-overridden 0 'OK: 2 skills, 1 agents'
 
+valid_root "$tmp/omp-pointer-anchor"
+skill "$tmp/omp-pointer-anchor" e 'name: e\ndescription: e\n' \
+  'On OMP, follow [OMP setup](../poteto-mode/references/omp-tools.md#model-names) instead.'
+expect omp-pointer-anchor 1 'FAIL: skills point OMP at omp-tools.md;'
+
+valid_root "$tmp/omp-pointer-substring"
+skill "$tmp/omp-pointer-substring" e 'name: e\ndescription: e\n' 'On OMP, read [map](references/tools.md).'
+mkdir -p "$tmp/omp-pointer-substring/plugin/rules"
+printf -- '---\nalwaysApply: true\n---\nIgnore `omp-tools.md`.\n' > "$tmp/omp-pointer-substring/plugin/rules/pstack-routing.md"
+expect omp-pointer-substring 1 'FAIL: skills point OMP at tools.md;'
+
 if [ "$failures" -ne 0 ]; then
   echo "$failures of $cases cases failed"
   exit 1
