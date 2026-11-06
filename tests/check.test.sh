@@ -71,6 +71,29 @@ valid_root "$tmp/autoload-dangling"
 printf -- '---\nname: poteto-agent\ndescription: d\nautoloadSkills: [a, gone]\n---\nbody\n' > "$tmp/autoload-dangling/plugin/agents/poteto-agent.md"
 expect autoload-dangling 1 'FAIL: unknown autoload skill gone in plugin/agents/poteto-agent.md'
 
+omp_pointer='On OMP, read [`references/omp-tools.md`](references/omp-tools.md) instead.'
+
+valid_root "$tmp/omp-pointer"
+skill "$tmp/omp-pointer" e 'name: e\ndescription: e\n' "$omp_pointer"
+expect omp-pointer 1 'FAIL: skills point OMP at omp-tools.md; plugin/rules/pstack-routing.md does not override it'
+
+valid_root "$tmp/omp-pointer-overridden"
+skill "$tmp/omp-pointer-overridden" e 'name: e\ndescription: e\n' "$omp_pointer"
+mkdir -p "$tmp/omp-pointer-overridden/plugin/rules"
+printf -- '---\nalwaysApply: true\n---\nIgnore `omp-tools.md`.\n' > "$tmp/omp-pointer-overridden/plugin/rules/pstack-routing.md"
+expect omp-pointer-overridden 0 'OK: 2 skills, 1 agents'
+
+valid_root "$tmp/omp-pointer-anchor"
+skill "$tmp/omp-pointer-anchor" e 'name: e\ndescription: e\n' \
+  'On OMP, follow [OMP setup](../poteto-mode/references/omp-tools.md#model-names) instead.'
+expect omp-pointer-anchor 1 'FAIL: skills point OMP at omp-tools.md;'
+
+valid_root "$tmp/omp-pointer-substring"
+skill "$tmp/omp-pointer-substring" e 'name: e\ndescription: e\n' 'On OMP, read [map](references/tools.md).'
+mkdir -p "$tmp/omp-pointer-substring/plugin/rules"
+printf -- '---\nalwaysApply: true\n---\nIgnore `omp-tools.md`.\n' > "$tmp/omp-pointer-substring/plugin/rules/pstack-routing.md"
+expect omp-pointer-substring 1 'FAIL: skills point OMP at tools.md;'
+
 if [ "$failures" -ne 0 ]; then
   echo "$failures of $cases cases failed"
   exit 1
