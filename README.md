@@ -15,7 +15,7 @@
 | `upstream.lock.json` | the pstack-claude tag and commit the skills came from | `scripts/sync.sh` |
 | `upstream-licenses/` | upstream license and notice files | `scripts/sync.sh` |
 
-There is no runtime extension. The skills stay in Claude Code language, and the mapping rule translates them while they run. Because nobody edits the skill files, syncing is a plain copy and never conflicts. The skills also carry their own OMP mapping (`poteto-mode/references/omp-tools.md`), written for a different install without the pinned agents; the routing rule overrides it.
+There is no runtime extension. The skills stay in Claude Code language, and the mapping rule translates them while they run. Because nobody edits the skill files, syncing is a plain copy and never conflicts. The skills' own OMP mapping (`poteto-mode/references/omp-tools.md`) targets a different install; the routing rule overrides it.
 
 ## Install
 
