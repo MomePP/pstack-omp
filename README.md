@@ -15,7 +15,7 @@
 | `upstream.lock.json` | the pstack-claude tag and commit the skills came from | `scripts/sync.sh` |
 | `upstream-licenses/` | upstream license and notice files | `scripts/sync.sh` |
 
-There is no runtime extension. The skills stay in Claude Code language, and the mapping rule translates them while they run. Because nobody edits the skill files, syncing is a plain copy and never conflicts.
+There is no runtime extension. The skills stay in Claude Code language, and the mapping rule translates them while they run. Because nobody edits the skill files, syncing is a plain copy and never conflicts. The skills also carry their own OMP mapping (`poteto-mode/references/omp-tools.md`), written for a different install without the pinned agents; the routing rule overrides it.
 
 ## Install
 
@@ -66,7 +66,7 @@ The PR is opened with the `SYNC_TOKEN` secret: a fine-grained personal access to
 
 Every run rebuilds `sync/pstack-claude` from `main`, so a commit pushed to that branch is lost on the next run. When the gate fails, put the fix (a new agent, a mapping row) on `main`, then rerun the workflow (`gh workflow run sync.yml`); the PR updates, turns green, and merges. A fix that needs the new skills (an agent whose `autoloadSkills` names a skill only the sync adds) fails the gate on `main`; push it to `sync/pstack-claude` instead, mark the PR ready, and merge it before the next run.
 
-`scripts/check.sh` fails when there are no skills, a skill lacks `name` or `description`, a skill spawns a `pstack:` agent this plugin does not ship or map, a `pstack:<skill>` reference has no skill, a rule or agent points at a missing `skill://<name>` or `autoloadSkills` entry, or the catalog or lock is invalid JSON or the catalog has no version.
+`scripts/check.sh` fails when there are no skills, a skill lacks `name` or `description`, a skill spawns a `pstack:` agent this plugin does not ship or map, a `pstack:<skill>` reference has no skill, a skill points OMP at a mapping file the routing rule does not override, a rule or agent points at a missing `skill://<name>` or `autoloadSkills` entry, or the catalog or lock is invalid JSON or the catalog has no version.
 
 Versions read `<pstack-claude version>-omp.<n>`. A sync to a new upstream version resets `<n>` to 1; a new upstream commit under the same version increments it. Bump `<n>` in `.omp-plugin/marketplace.json` by hand for local changes. `omp plugin upgrade` only notices a changed catalog version:
 
