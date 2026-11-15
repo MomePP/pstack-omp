@@ -39,7 +39,7 @@ The skills name models by alias (`opus`, `fable`, `sonnet`, `haiku`). OMP's `tas
 ```yaml
 modelRoles:
   opus: anthropic/claude-opus-5-5:high
-  fable: anthropic/claude-fable-5-1:high
+  fable: anthropic/claude-fable-5-2:high
   sonnet: anthropic/claude-sonnet-5-5:medium
   haiku: anthropic/claude-haiku-5-5:low
 ```
@@ -58,7 +58,7 @@ Your own instructions (`~/.omp/agent/AGENTS.md`) win over pstack. I use that to 
 
 ## Sync
 
-`.github/workflows/sync.yml` runs daily at 19:00 UTC; GitHub often starts scheduled runs hours late. When pstack-claude has a newer `v*` tag, it runs `scripts/sync.sh` and `scripts/check.sh`, then opens one PR on `sync/pstack-claude` with the gate result and the added and removed skills. When the gate passes, the workflow marks the PR ready if an earlier run left it as a draft, enables GitHub auto-merge (squash), and GitHub merges it once the required `check` status passes. When the gate fails, the PR stays open as a draft for review. A failing `check`, a conflict, or a refused auto-merge also leaves the PR open.
+`.github/workflows/sync.yml` runs daily at 19:00 UTC; GitHub often starts scheduled runs hours late. When pstack-claude has a newer `v*` tag, it runs `scripts/sync.sh` and `scripts/check.sh`, then opens one PR on `sync/pstack-claude` with the gate result, the added and removed skills, and a `port:` line for each upstream file this repo ports by hand (an agent under `plugins/pstack/agents/`, the OMP extension, `omp-tools.md`) that changed since the last sync. When the gate passes, the workflow marks the PR ready if an earlier run left it as a draft. With no `port:` line it enables GitHub auto-merge (squash), and GitHub merges the PR once the required `check` status passes. With a `port:` line it leaves auto-merge off: port the change to `plugin/agents/` or `plugin/rules/` on `main`, then merge the PR by hand. When the gate fails, the PR stays open as a draft for review. A failing `check`, a conflict, or a refused auto-merge also leaves the PR open.
 
 This relies on two repository settings: **Allow auto-merge** and **Automatically delete head branches** (Settings → General), and a `main` branch ruleset that requires the `check` status from GitHub Actions, with Repository admin in its bypass list.
 
