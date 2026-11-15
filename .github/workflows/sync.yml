@@ -84,7 +84,6 @@ jobs:
             gh pr ready "$PR"
           fi
           if [ "$HOLD" = true ]; then
-            # An earlier run may have armed auto-merge on this PR.
             gh pr merge "$PR" --disable-auto 2>/dev/null || true
           else
             gh pr merge "$PR" --auto --squash \

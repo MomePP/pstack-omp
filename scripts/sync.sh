@@ -51,7 +51,6 @@ echo "synced $tag (${commit:0:7})"
 comm -13 <(printf '%s\n' "$before") <(printf '%s\n' "$after") | sed '/^$/d; s/^/added: /'
 comm -23 <(printf '%s\n' "$before") <(printf '%s\n' "$after") | sed '/^$/d; s/^/removed: /'
 
-# plugin/agents and plugin/rules port these upstream files by hand, so a change to them needs a person.
 if [ -n "$locked_commit" ] && [ "$locked_commit" != "$commit" ]; then
   if git -C "$tmp/up" fetch -q --depth 1 origin "$locked_commit" 2>/dev/null; then
     git -C "$tmp/up" diff --name-only "$locked_commit" "$commit" -- \
