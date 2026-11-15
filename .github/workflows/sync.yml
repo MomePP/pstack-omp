@@ -86,6 +86,9 @@ jobs:
           if [ "$HOLD" != true ]; then
             gh pr merge "$PR" --auto --squash \
               || echo "::warning::could not enable auto-merge on PR #$PR; left open for review"
-          elif [ "$(gh pr view "$PR" --json autoMergeRequest -q '.autoMergeRequest != null')" = true ]; then
-            gh pr merge "$PR" --disable-auto
+          else
+            armed=$(gh pr view "$PR" --json autoMergeRequest -q '.autoMergeRequest != null')
+            if [ "$armed" = true ]; then
+              gh pr merge "$PR" --disable-auto
+            fi
           fi
