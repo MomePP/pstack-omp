@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Copies pstack-claude's skills at a release tag into plugin/skills/ verbatim.
+# Copies pstack-claude's skills at a release tag into plugin/skills/ verbatim, and prints a `port:` line for
+# each upstream file plugin/agents or plugin/rules ports by hand that changed since the locked commit.
 # Usage: scripts/sync.sh [TAG]   (default: latest v* tag)
 set -euo pipefail
 
@@ -50,3 +51,13 @@ jq -n --arg repo "$repo" --arg tag "$tag" --arg commit "$commit" --arg version "
 echo "synced $tag (${commit:0:7})"
 comm -13 <(printf '%s\n' "$before") <(printf '%s\n' "$after") | sed '/^$/d; s/^/added: /'
 comm -23 <(printf '%s\n' "$before") <(printf '%s\n' "$after") | sed '/^$/d; s/^/removed: /'
+
+if [ -n "$locked_commit" ] && [ "$locked_commit" != "$commit" ]; then
+  if git -C "$tmp/up" fetch -q --depth 1 origin "$locked_commit" 2>/dev/null; then
+    git -C "$tmp/up" diff --name-only "$locked_commit" "$commit" -- \
+      plugins/pstack/agents plugins/pstack/omp plugins/pstack/skills/poteto-mode/references/omp-tools.md \
+      | sed 's/^/port: /'
+  else
+    echo "port: unknown, cannot fetch the locked commit ${locked_commit:0:7}"
+  fi
+fi
