@@ -32,14 +32,18 @@ jobs:
         run: |
           tag=$(jq -r .tag upstream.lock.json)
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          port=$(grep -c '^port: ' sync.log || true)
+          [ "$port" -eq 0 ] || echo "hold=true" >> "$GITHUB_OUTPUT"
           {
             echo "Upstream: https://github.com/michael-denyer/pstack-claude/releases/tag/$tag"
             echo
             echo "Gate: ${{ steps.gate.outcome }}"
-            if [ "${{ steps.gate.outcome }}" = success ]; then
-              echo "Auto-merge: on. GitHub merges this PR once the required \`check\` passes."
-            else
+            if [ "${{ steps.gate.outcome }}" != success ]; then
               echo "Auto-merge: off. The gate failed; fix it on main and rerun the sync."
+            elif [ "$port" -ne 0 ]; then
+              echo "Auto-merge: off. Upstream changed files that plugin/agents or plugin/rules port by hand (the \`port:\` lines below). Port them on main, then merge this PR by hand; a rerun lists them again until it merges."
+            else
+              echo "Auto-merge: on. GitHub merges this PR once the required \`check\` passes."
             fi
             echo
             echo '```'
@@ -68,15 +72,21 @@ jobs:
             .omp-plugin/marketplace.json
           draft: ${{ steps.gate.outcome == 'failure' }}
 
-      - name: Enable auto-merge
+      - name: Mark ready and set auto-merge
         if: steps.gate.outcome == 'success' && (steps.pr.outputs.pull-request-operation == 'created' || steps.pr.outputs.pull-request-operation == 'updated')
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ steps.pr.outputs.pull-request-number }}
+          HOLD: ${{ steps.meta.outputs.hold }}
         run: |
           # create-pull-request sets draft only on create; a PR drafted by an earlier failed gate stays draft.
           if [ "$(gh pr view "$PR" --json isDraft -q .isDraft)" = true ]; then
             gh pr ready "$PR"
           fi
-          gh pr merge "$PR" --auto --squash \
-            || echo "::warning::could not enable auto-merge on PR #$PR; left open for review"
+          if [ "$HOLD" = true ]; then
+            # An earlier run may have armed auto-merge on this PR.
+            gh pr merge "$PR" --disable-auto 2>/dev/null || true
+          else
+            gh pr merge "$PR" --auto --squash \
+              || echo "::warning::could not enable auto-merge on PR #$PR; left open for review"
+          fi

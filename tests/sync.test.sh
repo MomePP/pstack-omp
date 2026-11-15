@@ -19,9 +19,10 @@ assert() { # description command...
 git_q() { git -c user.name=t -c user.email=t@t -c commit.gpgsign=false -c tag.gpgsign=false "$@" >/dev/null; }
 
 up="$tmp/upstream"
-mkdir -p "$up/plugins/pstack/skills/a" "$up/plugins/pstack/skills/b"
+mkdir -p "$up/plugins/pstack/skills/a" "$up/plugins/pstack/skills/b" "$up/plugins/pstack/agents"
 printf -- '---\nname: a\ndescription: a\n---\n' > "$up/plugins/pstack/skills/a/SKILL.md"
 printf -- '---\nname: b\ndescription: b\n---\n' > "$up/plugins/pstack/skills/b/SKILL.md"
+printf 'agent\n' > "$up/plugins/pstack/agents/x.md"
 printf '0.0.1\n' > "$up/VERSION"
 printf 'upstream license\n' > "$up/LICENSE"
 git_q -C "$up" init -b main
@@ -67,6 +68,7 @@ assert "latest tag picked" test "$(jq -r .tag "$work/upstream.lock.json")" = v0.
 assert "catalog version bumped to 0.0.2-omp.1" test "$(version)" = 0.0.2-omp.1
 assert "reports removed b" grep -qx 'removed: b' <<<"$out"
 assert "reports added c" grep -qx 'added: c' <<<"$out"
+assert "skill-only upstream change reports nothing to port" test -z "$(grep '^port: ' <<<"$out" || true)"
 
 jq '.plugins[0].version = "0.0.2-omp.3"' "$work/.omp-plugin/marketplace.json" > "$tmp/cat.json"
 mv "$tmp/cat.json" "$work/.omp-plugin/marketplace.json"
@@ -80,10 +82,12 @@ rm "$work/upstream.lock.json"
 assert "missing lock does not reset the local suffix" test "$(version)" = 0.0.2-omp.3
 
 printf 'changed\n' >> "$up/plugins/pstack/skills/c/SKILL.md"
+printf 'changed\n' >> "$up/plugins/pstack/agents/x.md"
 git_q -C "$up" commit -am retag
 git_q -C "$up" tag v0.0.2.1
-(cd "$work" && bash scripts/sync.sh v0.0.2.1 >/dev/null)
+out=$(cd "$work" && bash scripts/sync.sh v0.0.2.1)
 assert "same upstream VERSION, new commit bumps the suffix" test "$(version)" = 0.0.2-omp.4
+assert "changed upstream agent is reported to port" grep -qx 'port: plugins/pstack/agents/x.md' <<<"$out"
 
 printf '0.0.3\n' > "$up/VERSION"
 git_q -C "$up" commit -am three
