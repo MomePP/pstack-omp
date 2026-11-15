@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Copies pstack-claude's skills at a release tag into plugin/skills/ verbatim.
+# Copies pstack-claude's skills at a release tag into plugin/skills/ verbatim, and prints a `port:` line for
+# each upstream file plugin/agents or plugin/rules ports by hand that changed since the locked commit.
 # Usage: scripts/sync.sh [TAG]   (default: latest v* tag)
 set -euo pipefail
 
