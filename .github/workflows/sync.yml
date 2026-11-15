@@ -83,9 +83,9 @@ jobs:
           if [ "$(gh pr view "$PR" --json isDraft -q .isDraft)" = true ]; then
             gh pr ready "$PR"
           fi
-          if [ "$HOLD" = true ]; then
-            gh pr merge "$PR" --disable-auto 2>/dev/null || true
-          else
+          if [ "$HOLD" != true ]; then
             gh pr merge "$PR" --auto --squash \
               || echo "::warning::could not enable auto-merge on PR #$PR; left open for review"
+          elif [ "$(gh pr view "$PR" --json autoMergeRequest -q '.autoMergeRequest != null')" = true ]; then
+            gh pr merge "$PR" --disable-auto
           fi
