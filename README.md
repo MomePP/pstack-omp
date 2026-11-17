@@ -30,21 +30,25 @@ Start a new session afterwards. Check with:
 omp -p --no-session "Do not call tools. List the agents in the task tool's Available Agents."
 ```
 
-`poteto-agent`, `comment-sicko`, `thermo-nuclear-review-subagent`, `thermo-nuclear-code-quality-review-subagent`, and the model-pinned `task-{opus,fable,sonnet,haiku}` and `poteto-{opus,fable,sonnet,haiku}` should be listed.
+`poteto-agent`, `comment-sicko`, `thermo-nuclear-review-subagent`, `thermo-nuclear-code-quality-review-subagent`, and the model-pinned `task-{opus,sonnet,haiku}` and `poteto-{opus,sonnet,haiku}` should be listed.
 
 ### Model roles
 
-The skills name models by alias (`opus`, `fable`, `sonnet`, `haiku`). OMP's `task` tool has no per-item `model` field since 18.8.2, so the plugin ships one agent per alias (`task-<alias>`, `poteto-<alias>`, each with `model: "@<alias>"`) and the rules route a named model to it. Bind roles with those exact names in `~/.omp/agent/config.yml`:
+The skills name models by alias (`opus`, `fable`, `sonnet`, `haiku`). OMP's `task` tool has no per-item `model` field since 18.8.2, so the plugin ships one agent per alias (`task-<alias>`, `poteto-<alias>`, each with `model: "@<alias>"`) and the rules route a named model to it. `fable` is the exception: it has no pinned agent, so its single role (poteto-mode's `strongest judgment`) runs on the `opus` agent at the highest effort, and the panels drop its seat. Bind roles with those exact names in `~/.omp/agent/config.yml`:
 
 ```yaml
 modelRoles:
-  opus: anthropic/claude-opus-5-5:high
-  fable: anthropic/claude-fable-5-2:high
-  sonnet: anthropic/claude-sonnet-5-5:medium
-  haiku: anthropic/claude-haiku-5-5:low
+  opus: anthropic/claude-opus-5-5:medium
+  sonnet: anthropic/claude-sonnet-5-5:high
+  haiku: anthropic/claude-haiku-5-5:high
+task:
+  enableEffort: true
+  maxEffort: xhigh
 ```
 
-Point them at whatever you have. The panel skills (`arena`, `architect`, `interrogate`) run three models per call. They cost about three times a single-model review, and they stay diverse only while the aliases resolve to different models.
+The suffix is the effort a subagent starts at when the parent passes no `effort`. With `enableEffort`, the parent can pass `lo`, `med` or `hi`, which pick the model's lowest, middle and highest level (`low`, `high`, `max` on a five-level model), capped at `maxEffort`.
+
+Point them at whatever you have. The panel skills (`arena`, `architect`, `interrogate`) run one model per bound alias. They cost about that many times a single-model review, and they stay diverse only while the aliases resolve to different models.
 
 ### Using it
 
