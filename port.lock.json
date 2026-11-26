@@ -4,6 +4,7 @@
     "plugins/pstack/agents/poteto-agent.md": "3a29269be907eeda7f2b7754bee140ebe5ed48d9",
     "plugins/pstack/agents/thermo-nuclear-code-quality-review-subagent.md": "5147f9bcbf348de34e28fad423a8c63824d4dd5d",
     "plugins/pstack/agents/thermo-nuclear-review-subagent.md": "9a1ea104b3d63314fd50b426e20ee0bfc9f05f59",
+    "plugins/pstack/hooks/session-start-context.md": "9c622cf09081fc51e4a0fb8fe4d3de404f66fafe",
     "plugins/pstack/omp/index.mjs": "d877225d9227b6eea778a577a8e16aa013dbbf5d",
     "plugins/pstack/skills/poteto-mode/references/omp-tools.md": "b883ff09e0af430e13b81bd408d3e31b121a386d"
   }

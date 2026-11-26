@@ -160,6 +160,10 @@ out=$(cd "$work" && bash scripts/sync.sh v9.9.9 2>&1) || rc=$?
 assert "unknown tag fails" test "$rc" -ne 0
 assert "unknown tag is named in the error" grep -q 'v9.9.9' <<<"$out"
 
+rc=0
+(cd "$work" && bash scripts/sync.sh --ack >/dev/null 2>&1) || rc=$?
+assert "ack without a tag fails" test "$rc" -ne 0
+
 if [ "$failures" -ne 0 ]; then
   echo "$failures assertion(s) failed"
   exit 1
