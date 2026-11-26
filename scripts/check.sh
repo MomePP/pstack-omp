@@ -42,7 +42,6 @@ done
 
 body() { awk 'NR == 1 && $0 == "---" { fm = 1; next } fm == 1 { if ($0 == "---") fm = 2; next } { print }' "$1"; }
 
-# The pinned-model agents are hand-kept copies of one body; an edit to a single copy silently diverges.
 same_body() { # reference file, file
   [ "$(body "$1")" = "$(body "$2")" ] || fail "$2 body differs from $1"
 }
@@ -86,7 +85,7 @@ while IFS= read -r x; do
     || fail "skills point OMP at $x; plugin/rules/pstack-routing.md does not override it"
 done < <(grep -rhoE 'On OMP[^(]*\]\([^)#]+' plugin/skills 2>/dev/null | sed 's#.*/##' | sort -u || true)
 
-is_agent_form() { # pstack:<x> resolves to a shipped agent
+is_shipped_agent() {
   local x=$1 a
   for a in ${agents[@]+"${agents[@]}"}; do [ "$x" = "$a" ] && return 0; done
   return 1
@@ -95,13 +94,13 @@ is_agent_form() { # pstack:<x> resolves to a shipped agent
 subagent_refs=$(grep -rhoE 'subagent_type: ?"pstack:[a-z0-9-]+"' plugin/skills 2>/dev/null \
   | sed -E 's/.*"pstack:([a-z0-9-]+)"/\1/' | sort -u || true)
 for x in $subagent_refs; do
-  is_agent_form "$x" || fail "unknown agent pstack:$x"
+  is_shipped_agent "$x" || fail "unknown agent pstack:$x"
 done
 
 refs=$(grep -rhoE 'pstack:[a-z0-9-]+' plugin/skills 2>/dev/null | sed 's/^pstack://' | sort -u || true)
 for x in $refs; do
   grep -qxF "$x" <<<"$subagent_refs" && continue
-  is_agent_form "$x" && continue
+  is_shipped_agent "$x" && continue
   [ -d "plugin/skills/$x" ] && continue
   fail "unknown skill pstack:$x"
 done
