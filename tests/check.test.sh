@@ -21,7 +21,7 @@ valid_root() {
     > "$root/.omp-plugin/marketplace.json"
   printf -- '---\nname: poteto-agent\ndescription: d\n---\nbody\n' > "$root/plugin/agents/poteto-agent.md"
   skill "$root" a 'name: a\ndescription: does a\n' \
-    'Spawn `subagent_type: "pstack:poteto-agent"`, `pstack:poteto-agent-high`, `pstack:effort-max`, then `pstack:a`.'
+    'Spawn `subagent_type: "pstack:poteto-agent"`, then `pstack:a`.'
 }
 
 expect() { # case-name want-exit want-substring
@@ -93,6 +93,62 @@ skill "$tmp/omp-pointer-substring" e 'name: e\ndescription: e\n' 'On OMP, read [
 mkdir -p "$tmp/omp-pointer-substring/plugin/rules"
 printf -- '---\nalwaysApply: true\n---\nIgnore `omp-tools.md`.\n' > "$tmp/omp-pointer-substring/plugin/rules/pstack-routing.md"
 expect omp-pointer-substring 1 'FAIL: skills point OMP at tools.md;'
+
+valid_root "$tmp/effort-form"
+skill "$tmp/effort-form" f 'name: f\ndescription: f\n' 'use `subagent_type: "pstack:poteto-agent-high"`'
+expect effort-form 1 'FAIL: unknown agent pstack:poteto-agent-high'
+
+valid_root "$tmp/bad-port-lock"
+printf '{' > "$tmp/bad-port-lock/port.lock.json"
+expect bad-port-lock 1 'FAIL: port.lock.json invalid JSON'
+
+valid_root "$tmp/good-port-lock"
+printf '{"tag":"v1","files":{}}\n' > "$tmp/good-port-lock/port.lock.json"
+expect good-port-lock 0 'OK: 1 skills, 1 agents'
+
+panels() { # root rule-panel upstream-panel (upstream-panel empty: no codex-tools.md)
+  mkdir -p "$1/plugin/rules"
+  printf -- '---\nalwaysApply: true\n---\n- Diverse-model panels (%s) stay diverse.\n' "$2" > "$1/plugin/rules/pstack-omp-tools.md"
+  [ -z "$3" ] && return 0
+  mkdir -p "$1/plugin/skills/poteto-mode/references"
+  printf -- '- Diverse-model panels (%s): the signal comes from diversity.\n' "$3" > "$1/plugin/skills/poteto-mode/references/codex-tools.md"
+}
+
+valid_root "$tmp/panel-match"
+panels "$tmp/panel-match" '`arena`, `interrogate`' '`arena`, `interrogate`'
+expect panel-match 0 'OK: 1 skills, 1 agents'
+
+valid_root "$tmp/panel-mismatch"
+panels "$tmp/panel-mismatch" '`arena`, `architect`, `interrogate`' '`arena`, `interrogate`'
+expect panel-mismatch 1 'FAIL: panel list in plugin/rules/pstack-omp-tools.md (arena, architect, interrogate) differs from upstream (arena, interrogate)'
+
+valid_root "$tmp/panel-upstream-missing"
+panels "$tmp/panel-upstream-missing" '`arena`' ''
+expect panel-upstream-missing 1 'FAIL: cannot find upstream panel list in codex-tools.md'
+
+valid_root "$tmp/panel-upstream-no-line"
+panels "$tmp/panel-upstream-no-line" '`arena`' '`arena`'
+printf 'nothing here\n' > "$tmp/panel-upstream-no-line/plugin/skills/poteto-mode/references/codex-tools.md"
+expect panel-upstream-no-line 1 'FAIL: cannot find upstream panel list in codex-tools.md'
+
+pinned() { # root file-name body
+  printf -- '---\nname: %s\ndescription: d\nmodel: x\n---\n%s\n' "${2%.md}" "$3" > "$1/plugin/agents/$2"
+}
+
+valid_root "$tmp/pinned-ok"
+pinned "$tmp/pinned-ok" poteto-opus.md body
+pinned "$tmp/pinned-ok" task-opus.md work
+pinned "$tmp/pinned-ok" task-sonnet.md work
+expect pinned-ok 0 'OK: 1 skills, 4 agents'
+
+valid_root "$tmp/pinned-poteto-drift"
+pinned "$tmp/pinned-poteto-drift" poteto-opus.md 'edited by hand'
+expect pinned-poteto-drift 1 'FAIL: plugin/agents/poteto-opus.md body differs from plugin/agents/poteto-agent.md'
+
+valid_root "$tmp/pinned-task-drift"
+pinned "$tmp/pinned-task-drift" task-opus.md work
+pinned "$tmp/pinned-task-drift" task-sonnet.md 'edited by hand'
+expect pinned-task-drift 1 'FAIL: plugin/agents/task-sonnet.md body differs from plugin/agents/task-opus.md'
 
 if [ "$failures" -ne 0 ]; then
   echo "$failures of $cases cases failed"
