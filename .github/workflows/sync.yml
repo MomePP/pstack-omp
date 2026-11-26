@@ -53,7 +53,7 @@ jobs:
               if [ -n "$from" ]; then
                 echo "Changes since the last ported tag: https://github.com/michael-denyer/pstack-claude/compare/$from...$tag"
               fi
-              echo "Port them on main, then run \`scripts/sync.sh --ack $tag\` and commit \`port.lock.json\`. The next sync run arms auto-merge."
+              echo "Port them, run \`scripts/sync.sh --ack $tag\`, and commit \`port.lock.json\` with the port. A port on main reruns this sync, which then arms auto-merge; a port that needs the new skills goes in one PR on top of \`scripts/sync.sh $tag\` (README, Sync)."
             else
               echo "Auto-merge: on. GitHub merges this PR once the required \`check\` passes."
             fi

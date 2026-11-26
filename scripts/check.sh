@@ -42,7 +42,7 @@ done
 
 body() { awk 'NR == 1 && $0 == "---" { fm = 1; next } fm == 1 { if ($0 == "---") fm = 2; next } { print }' "$1"; }
 
-# The pinned-model agents are generated copies of one body; a hand edit to a single copy silently diverges.
+# The pinned-model agents are hand-kept copies of one body; an edit to a single copy silently diverges.
 same_body() { # reference file, file
   [ "$(body "$1")" = "$(body "$2")" ] || fail "$2 body differs from $1"
 }
