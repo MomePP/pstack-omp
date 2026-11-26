@@ -2,7 +2,7 @@
 # Copies pstack-claude's skills at a release tag into plugin/skills/ verbatim, and prints a `port:` line for
 # each upstream file that plugin/agents or plugin/rules port by hand and that differs from port.lock.json.
 # Usage: scripts/sync.sh [TAG]         sync (default: latest v* tag)
-#        scripts/sync.sh --ack [TAG]   record the watched files at TAG as ported, touching nothing else
+#        scripts/sync.sh --ack TAG     record the watched files at TAG as ported, touching nothing else
 set -euo pipefail
 
 repo=${PSTACK_CLAUDE_REPO:-https://github.com/michael-denyer/pstack-claude}
@@ -13,10 +13,12 @@ ack=false
 if [ "${1:-}" = --ack ]; then
   ack=true
   shift
+  [ -n "${1:-}" ] || { echo "sync: --ack needs the TAG you ported" >&2; exit 2; }
 fi
 
 verbatim_agents=(comment-sicko)
-watched_paths=(plugins/pstack/agents plugins/pstack/omp plugins/pstack/skills/poteto-mode/references/omp-tools.md)
+watched_paths=(plugins/pstack/agents plugins/pstack/omp plugins/pstack/hooks/session-start-context.md
+  plugins/pstack/skills/poteto-mode/references/omp-tools.md)
 
 src=$repo
 [ -d "$repo" ] && src="file://$repo"
