@@ -48,7 +48,7 @@ task:
 
 The suffix is the effort a subagent starts at when the parent passes no `effort`. With `enableEffort`, the parent can pass `lo`, `med` or `hi`, which pick the model's lowest, middle and highest level (`low`, `high`, `max` on a five-level model), capped at `maxEffort`.
 
-Point them at whatever you have. The panel skills (`arena`, `architect`, `interrogate`) run one model per bound alias. They cost about that many times a single-model review, and they stay diverse only while the aliases resolve to different models.
+Point them at whatever you have. The panel skills (`arena`, `interrogate`) run one model per bound alias. They cost about that many times a single-model review, and they stay diverse only while the aliases resolve to different models.
 
 ### Using it
 
