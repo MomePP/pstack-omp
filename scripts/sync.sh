@@ -15,7 +15,6 @@ if [ "${1:-}" = --ack ]; then
   shift
 fi
 
-# Upstream agents that plugin/agents ships byte for byte; every other watched file is ported by hand.
 verbatim_agents=(comment-sicko)
 watched_paths=(plugins/pstack/agents plugins/pstack/omp plugins/pstack/skills/poteto-mode/references/omp-tools.md)
 
