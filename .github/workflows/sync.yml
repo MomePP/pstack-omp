@@ -4,6 +4,13 @@ on:
   schedule:
     - cron: "0 19 * * *"
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [port.lock.json]
+
+concurrency:
+  group: sync
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -41,7 +48,12 @@ jobs:
             if [ "${{ steps.gate.outcome }}" != success ]; then
               echo "Auto-merge: off. The gate failed; fix it on main and rerun the sync."
             elif [ "$port" -ne 0 ]; then
-              echo "Auto-merge: off. Upstream changed files that plugin/agents or plugin/rules port by hand (the \`port:\` lines below). Port them on main, then merge this PR by hand; a rerun lists them again until it merges."
+              from=$(jq -r '.tag // empty' port.lock.json 2>/dev/null || true)
+              echo "Auto-merge: off. Upstream changed files that plugin/agents or plugin/rules port by hand (the \`port:\` lines below)."
+              if [ -n "$from" ]; then
+                echo "Changes since the last ported tag: https://github.com/michael-denyer/pstack-claude/compare/$from...$tag"
+              fi
+              echo "Port them, run \`scripts/sync.sh --ack $tag\`, and commit \`port.lock.json\` with the port. A port on main reruns this sync, which then arms auto-merge; a port that needs the new skills goes in one PR on top of \`scripts/sync.sh $tag\` (README, Sync)."
             else
               echo "Auto-merge: on. GitHub merges this PR once the required \`check\` passes."
             fi
@@ -67,6 +79,7 @@ jobs:
           body-path: pr-body.md
           add-paths: |
             plugin/skills
+            plugin/agents/comment-sicko.md
             upstream-licenses
             upstream.lock.json
             .omp-plugin/marketplace.json

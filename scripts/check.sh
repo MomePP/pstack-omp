@@ -8,8 +8,8 @@ cd "$root"
 fails=0
 fail() { echo "FAIL: $*"; fails=$((fails + 1)); }
 
-for f in .omp-plugin/marketplace.json upstream.lock.json; do
-  [ "$f" = upstream.lock.json ] && [ ! -e "$f" ] && continue
+for f in .omp-plugin/marketplace.json upstream.lock.json port.lock.json; do
+  [ "$f" != .omp-plugin/marketplace.json ] && [ ! -e "$f" ] && continue
   jq empty "$f" 2>/dev/null || fail "$f invalid JSON"
 done
 if jq empty .omp-plugin/marketplace.json 2>/dev/null; then
@@ -40,6 +40,38 @@ for f in plugin/agents/*.md; do
   done
 done
 
+body() { awk 'NR == 1 && $0 == "---" { fm = 1; next } fm == 1 { if ($0 == "---") fm = 2; next } { print }' "$1"; }
+
+same_body() { # reference file, file
+  [ "$(body "$1")" = "$(body "$2")" ] || fail "$2 body differs from $1"
+}
+if [ -e plugin/agents/poteto-agent.md ]; then
+  for f in plugin/agents/poteto-*.md; do
+    [ "$f" = plugin/agents/poteto-agent.md ] && continue
+    same_body plugin/agents/poteto-agent.md "$f"
+  done
+fi
+task_ref=
+for f in plugin/agents/task-*.md; do
+  [ -e "$f" ] || continue
+  if [ -z "$task_ref" ]; then task_ref=$f; else same_body "$task_ref" "$f"; fi
+done
+
+panel_list() { # backticked names inside "Diverse-model panels (...)"
+  grep -m1 'Diverse-model panels (' "$1" 2>/dev/null \
+    | sed -E 's/.*Diverse-model panels \(([^)]*)\).*/\1/' | grep -oE '`[^`]+`' | tr -d '`' | paste -sd, - | sed 's/,/, /g' || true
+}
+if [ -e plugin/rules/pstack-omp-tools.md ]; then
+  upstream_panel=$(panel_list plugin/skills/poteto-mode/references/codex-tools.md)
+  if [ -z "$upstream_panel" ]; then
+    fail "cannot find upstream panel list in codex-tools.md"
+  else
+    rule_panel=$(panel_list plugin/rules/pstack-omp-tools.md)
+    [ "$rule_panel" = "$upstream_panel" ] \
+      || fail "panel list in plugin/rules/pstack-omp-tools.md ($rule_panel) differs from upstream ($upstream_panel)"
+  fi
+fi
+
 for f in plugin/rules/*.md plugin/agents/*.md; do
   [ -e "$f" ] || continue
   for x in $(grep -oE 'skill://[a-z0-9-]+<?' "$f" | grep -v '<$' | sed 's#^skill://##' | sort -u); do
@@ -53,22 +85,22 @@ while IFS= read -r x; do
     || fail "skills point OMP at $x; plugin/rules/pstack-routing.md does not override it"
 done < <(grep -rhoE 'On OMP[^(]*\]\([^)#]+' plugin/skills 2>/dev/null | sed 's#.*/##' | sort -u || true)
 
-is_agent_form() { # pstack:<x> resolves to a shipped agent or a mapped effort variant
+is_shipped_agent() {
   local x=$1 a
   for a in ${agents[@]+"${agents[@]}"}; do [ "$x" = "$a" ] && return 0; done
-  [[ "$x" =~ ^(poteto-agent|effort)-(low|medium|high|xhigh|max)?$ ]]
+  return 1
 }
 
 subagent_refs=$(grep -rhoE 'subagent_type: ?"pstack:[a-z0-9-]+"' plugin/skills 2>/dev/null \
   | sed -E 's/.*"pstack:([a-z0-9-]+)"/\1/' | sort -u || true)
 for x in $subagent_refs; do
-  is_agent_form "$x" || fail "unknown agent pstack:$x"
+  is_shipped_agent "$x" || fail "unknown agent pstack:$x"
 done
 
 refs=$(grep -rhoE 'pstack:[a-z0-9-]+' plugin/skills 2>/dev/null | sed 's/^pstack://' | sort -u || true)
 for x in $refs; do
   grep -qxF "$x" <<<"$subagent_refs" && continue
-  is_agent_form "$x" && continue
+  is_shipped_agent "$x" && continue
   [ -d "plugin/skills/$x" ] && continue
   fail "unknown skill pstack:$x"
 done
